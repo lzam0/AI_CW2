@@ -1,5 +1,10 @@
 # AI_CW2 Group A114
 
+# Installation Guide
+
+Download these python packages:
+`pip install mediapipe`
+
 ## Structure
 1. Install Dependencies and test MediaPipe on one Image
 2. Run Feature extraction over all images to produce a CSV where each row = instance + columns = id, x0,y0,z0 ... x20,y20,z20. Save raw features as a CSV file "features_raw.csv"
