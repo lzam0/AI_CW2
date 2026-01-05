@@ -7,6 +7,10 @@ from collections import Counter
 # Split data into training and testing sets
 from sklearn.model_selection import train_test_split
 
+# output path for visualisations
+confusion_matrix_png = 'knn_confusion_matrix.png'
+
+# Eventually have it so that it gets parsed by a main script
 # Load the extracted features dataset
 data = pd.read_csv('data/extracted_features/hand_landmarks.csv') # Replace with actual path to your CSV file
 
@@ -18,7 +22,7 @@ y = data['label'].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=2)
 
 # --------------------------------------------------------------------------------------------
-# Create visualisations of the training data
+# Create visualisations of the training data - scatter plot of first two features (x0, y0)
 plt.figure(figsize=(10, 6))
 
 unique_labels = np.unique(y_train)
@@ -81,3 +85,26 @@ predictions = knn.predict(X_test)
 # To evaluate how accurate the model is, we can calculate the accuracy
 accuracy = np.mean(predictions == y_test) * 100
 print(f"KNN classification accuracy: {accuracy:.2f}%")
+
+# --------------------------------------------------------------------------------------------
+
+# Visualisation of the confusion matrix
+from sklearn.metrics import confusion_matrix
+
+# Create confusion matrix data based of y_test and predictions
+cm = confusion_matrix(y_test, predictions)
+
+# Graph using Seaborn
+plt.figure(figsize=(10, 8))
+
+# Heat map
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=np.unique(y),
+            yticklabels=np.unique(y))
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix for KNN ASL Classification')
+plt.tight_layout()
+plt.show()
+plt.savefig('knn_confusion_matrix.png')
+#--------------------------------------------------------------------------------------------
