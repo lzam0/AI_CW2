@@ -13,6 +13,7 @@ confusion_matrix_png = 'knn_confusion_matrix.png'
 # Eventually have it so that it gets parsed by a main script
 # Load the extracted features dataset
 data = pd.read_csv('data/extracted_features/hand_landmarks.csv') # Replace with actual path to your CSV file
+#data = pd.read_csv('dummy_asl_features.csv')
 
 # Separate features and labels
 X = data.drop(columns=['instance_id', 'label']).values
@@ -39,9 +40,16 @@ plt.tight_layout()
 
 plt.show()
 
-# Define the euclidean distance function
+#--------------------------------------------------------------------------------------------
+# Distances functions
+
+# Euclidean distance - is a straight line distance between two points (like a ruler)
 def euclidean_distance(point1, point2):
     return np.sqrt(np.sum((point1 - point2) ** 2))
+
+# Manhattan distance - is the sum of the absolute difference of their coordinates (like navigating a grid of city blocks)
+def manhattan_distance(point1, point2):
+    return np.sum(np.abs(point1 - point2))
 
 #--------------------------------------------------------------------------------------------
 
@@ -76,7 +84,11 @@ class KNN:
         return most_common
     
 # Look at the 5 nearest neighbours
+# In the future can look into more than just the 5 nearest neighbours (might be quite limiting!)
+k_values = [5,10,25,50,100] # testing different k values 
 knn = KNN(k=5)
+
+# Train the KNN model
 knn.fit(X_train, y_train)
 
 # Retrieve predictions for the test set
