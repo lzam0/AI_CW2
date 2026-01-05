@@ -120,3 +120,28 @@ plt.tight_layout()
 plt.show()
 plt.savefig('knn_confusion_matrix.png')
 #--------------------------------------------------------------------------------------------
+
+# Calculate the precision, recall, and F1-score for each class
+
+classes = np.unique(y)
+recall_per_class = {}
+
+# Calculate recall for each class - iterate through each class
+for i, label in enumerate(classes):
+
+    # True Positives are on the diagonal
+    tp = cm[i, i]
+
+    # The sum of the row is the total actual samples for that class
+    total_actual = np.sum(cm[i, :])
+    recall = tp / total_actual if total_actual > 0 else 0
+    recall_per_class[label] = recall
+    print(f"Recall for Class {label}: {recall:.2f}")
+
+# Optional: Visualize Recall as a bar chart
+plt.figure(figsize=(10, 5))
+plt.bar(recall_per_class.keys(), recall_per_class.values(), color='skyblue')
+plt.title('Recall per Class (KNN from Scratch)')
+plt.ylabel('Recall Score')
+plt.ylim(0, 1) # Recall is always between 0 and 1
+plt.show()

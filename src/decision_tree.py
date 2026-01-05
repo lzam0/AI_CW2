@@ -45,7 +45,7 @@ print(f"Best Parameters: {grid_search.best_params_}")
 best_tree = grid_search.best_estimator_
 # Explain why these parameters were chosen (Highest Mean cross validation accuracy)
 
-# 4. Final Evaluation (Requirement 5)
+# Evaluate the best model on the test set
 y_pred = best_tree.predict(X_test)
 print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity (Recall)!
 
@@ -56,7 +56,7 @@ print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensi
 # Create confusion matrix data based of y_test and predictions
 cm = confusion_matrix(y_test, y_pred)
 
-# 2. Plot using Seaborn
+# Plot confusion matrix using seaborn heatmaps
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
             xticklabels=np.unique(y), yticklabels=np.unique(y))
