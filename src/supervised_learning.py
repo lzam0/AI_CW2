@@ -1,10 +1,10 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-
+import math
 from collections import Counter
 
+import  numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Split data into training and testing sets
 from sklearn.model_selection import train_test_split
@@ -33,10 +33,12 @@ print(f"Testing size: {len(X_test)}") # ~20%
 print(f"Total Dataset size: {len(X)}") # 100%
 
 #--------------------------------------------------------------------------------------------
-
+# Decision Tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
+
+print("Model: Decision Tree Classifier")
 
 # Min sample split and max depth act as stopping conditions for the tree growth
 param_grid = {
@@ -60,23 +62,34 @@ best_tree = grid_search.best_estimator_
 
 # Evaluate the best model on the test set
 y_pred = best_tree.predict(X_test)
-print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity (Recall)!
-
+print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity
 #--------------------------------------------------------------------------------------------
-# Visualisation of the confusion matrix
+# Random Forest Classifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 
-# Create confusion matrix data based of y_test and predictions
-cm = confusion_matrix(y_test, y_pred)
+print("Model: Random Forrest Classifier")
 
-# Plot confusion matrix using seaborn heatmaps
-plt.figure(figsize=(10, 8))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-            xticklabels=np.unique(y), yticklabels=np.unique(y))
-plt.title('Best Decision Tree: Confusion Matrix')
-plt.ylabel('Actual Label')
-plt.xlabel('Predicted Label')
-plt.show()
+# Parameters for tuning
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10]
+}
 
-plt.savefig('decision_tree_confusion_matrix.png')
+# Initialize Random Forest Classifier (random state = 2 for reproducibility)
+rf_clf = RandomForestClassifier(random_state=2)
 
+# Grid Search with Cross-Validation
+# Trains model on 4 pieces and tests on the 5th piece
+# Repeats this for every combination for hyper parameters in the grid
+grid_search = GridSearchCV(rf_clf, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+grid_search.fit(X_train, y_train)
+
+print (f"Best Parameters: {grid_search.best_params_}")
+best_forest = grid_search.best_estimator_
+
+# Evaluate the best model on the test set
+y_pred = best_forest.predict(X_test)
+print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity
 #--------------------------------------------------------------------------------------------
