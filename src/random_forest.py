@@ -1,10 +1,10 @@
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-
+import math
 from collections import Counter
 
+import  numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Split data into training and testing sets
 from sklearn.model_selection import train_test_split
@@ -34,49 +34,48 @@ print(f"Total Dataset size: {len(X)}") # 100%
 
 #--------------------------------------------------------------------------------------------
 
-from sklearn.tree import DecisionTreeClassifier
+# Random Forest Classifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report, confusion_matrix
 
-# Min sample split and max depth act as stopping conditions for the tree growth
+print("Model: Decision Tree Classifier")
+
+# Parameters for tuning
 param_grid = {
-    'max_depth': [3, 5, 10, 20, None],
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
     'min_samples_split': [2, 5, 10]
 }
 
-# Load the extracted features dataset 
-dt_clf = DecisionTreeClassifier(random_state=2)
+# Initialize Random Forest Classifier (random state = 2 for reproducibility)
+rf_clf = RandomForestClassifier(random_state=2)
 
-# Splits training data into 5 pieces
+# Grid Search with Cross-Validation
 # Trains model on 4 pieces and tests on the 5th piece
 # Repeats this for every combination for hyper parameters in the grid
-grid_search = GridSearchCV(dt_clf, param_grid, cv=5, scoring='accuracy')
+grid_search = GridSearchCV(rf_clf, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
 grid_search.fit(X_train, y_train)
 
-# Identify best parameters from the grid search
-print(f"Best Parameters: {grid_search.best_params_}")
-best_tree = grid_search.best_estimator_
-# Explain why these parameters were chosen (Highest Mean cross validation accuracy)
+print (f"Best Parameters: {grid_search.best_params_}")
+best_forest = grid_search.best_estimator_
 
 # Evaluate the best model on the test set
-y_pred = best_tree.predict(X_test)
-print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity (Recall)!
-
-#--------------------------------------------------------------------------------------------
+y_pred = best_forest.predict(X_test)
+print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity
+#-------------------------------------------------------------------------------------
 # Visualisation of the confusion matrix
 
-# Create confusion matrix data based of y_test and predictions
 cm = confusion_matrix(y_test, y_pred)
 
-# Plot confusion matrix using seaborn heatmaps
 plt.figure(figsize=(10, 8))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+sns.heatmap(cm, annot=True, fmt='d', cmap='Greens', 
             xticklabels=np.unique(y), yticklabels=np.unique(y))
-plt.title('Best Decision Tree: Confusion Matrix')
+plt.title('Random Forest: Confusion Matrix')
 plt.ylabel('Actual Label')
 plt.xlabel('Predicted Label')
+plt.savefig('random_forest_confusion_matrix.png')
 plt.show()
 
 plt.savefig('decision_tree_confusion_matrix.png')
-
 #--------------------------------------------------------------------------------------------
