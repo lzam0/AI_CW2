@@ -9,9 +9,13 @@ from pathlib import Path
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-# Create HandLandmarker
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
+print("ROOT:", ROOT)
+
+# Model Path (hand_landmaker.task)
 MODEL_PATH = ROOT / "models" / "hand_landmarker.task"
+print("MODEL_PATH exists:", MODEL_PATH.exists())
+
 # Path to ASL images
 IMAGE_DIR = ROOT / "data" / "CW2_dataset_final"
 OUTPUT_CSV = ROOT / "data" / "extracted_features" / "hand_landmarks.csv"
@@ -25,7 +29,6 @@ options = vision.HandLandmarkerOptions(
 detector = vision.HandLandmarker.create_from_options(options)
 
 # CSV Headers
-
 header = ["instance_id"]
 
 for i in range(21):
@@ -100,6 +103,9 @@ print(f"Saved to: {OUTPUT_CSV}")
 # Split data into training and testing sets
 from sklearn.model_selection import train_test_split
 
+# This scatter plot visualises how the raw hand-landmark data is distributed 
+# across different ASL classes before any advanced processing or modelling.
+
 # Load the extracted features dataset
 data = pd.read_csv('data/extracted_features/hand_landmarks.csv')
 
@@ -119,11 +125,12 @@ for label in unique_labels:
     mask = y_train == label
     plt.scatter(X_train[mask, 0], X_train[mask, 1], label=f'Sign {label}', alpha=0.6)
 
-plt.title('Scatter Plot of ASL Hand Landmarks (Feature x0 vs y0)')
+plt.title('Raw Hand Landmark Feature Space (Feature x0 vs y0)')
 plt.xlabel('Wrist X-coordinate (Feature 1)')
 plt.ylabel('Wrist Y-coordinate (Feature 2)')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left') # Move legend outside the plot
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
 
+plt.savefig(ROOT / "data" / "extracted_features" / "scatter plot raw data.png")
 plt.show()

@@ -2,7 +2,9 @@ import csv
 import numpy as np
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
+print("ROOT:", ROOT)
+
 INPUT = ROOT / "data" / "extracted_features" / "hand_landmarks.csv"
 OUTPUT = ROOT / "data" / "extracted_features" / "hand_landmarks_sanitised.csv"
 
@@ -13,7 +15,7 @@ def centre_hand(flat):
 
 def normalise_scale(flat):
     lm = flat.reshape(21, 3)
-    scale = np.linalg.norm(lm[9])  # Centre wrist
+    scale = np.linalg.norm(lm[9])  # Normalise using middle finger MCP distance
     if scale == 0:
         return None
     return (lm / scale).reshape(-1)
@@ -53,9 +55,13 @@ with INPUT.open(newline="") as f:
 
         clean_rows.append([label, *data])
 
+header = "label," + ",".join([f"f{i}" for i in range(63)])
+
 np.savetxt(
     OUTPUT,
     clean_rows,
     delimiter=",",
-    fmt="%s"
+    fmt="%s",
+    header=header,
+    comments=""
 )
