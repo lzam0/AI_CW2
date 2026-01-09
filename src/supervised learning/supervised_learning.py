@@ -1,43 +1,55 @@
-import math
-from collections import Counter
-
-import  numpy as np
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Split data into training and testing sets
+# Classification Models
+from knn_from_scratch import KNN
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+# SkLearn Analyse
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.model_selection import GridSearchCV
 
 # Load the extracted features dataset
-data = pd.read_csv('data/extracted_features/hand_landmarks.csv') # Replace with actual path to your CSV file
+cleaned_csv = "data/extracted_features/hand_landmarks_sanitised.csv"
+df = pd.read_csv(cleaned_csv)
 
 # Separate features and labels
-X = data.drop(columns=['instance_id', 'label']).values
-y = data['label'].values
+X = df.drop(columns=['label']).values
+y = df['label'].values
 
 # Create training testing set - random state utilised so that the split is reproducible (seed)
-# First split off test set (20%)
-X_temp, X_test, y_temp, y_test = train_test_split(
+# 60% Train (to learn), 20% Val (to tune), 20% Test (final evaluation)
+X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.20, random_state=2
 )
 
-# Then split the remaining data into training (60%) and validation (20%)
-X_train, X_val, y_train, y_val = train_test_split(
-    X_temp, y_temp, test_size=0.25, random_state=2
-)
-
-print(f"Training size: {len(X_train)}") # ~60%
-print(f"Validation size: {len(X_val)}") # ~20%
-print(f"Testing size: {len(X_test)}") # ~20%
-print(f"Total Dataset size: {len(X)}") # 100%
+print(f"Dataset Split: {len(X_train)} training samples, {len(X_test)} testing samples.")
 
 #--------------------------------------------------------------------------------------------
-# Decision Tree
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
+# Train and evaluate the KNN model
 
+print("Model: kNN Classifier")
+
+# Use the best model selected (k=3 and distance = euclidean)
+knn_model = KNN(k=3, distance_metric='euclidean')
+knn_model.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = knn_model.predict(X_test)
+
+# Calculate Accuracy
+test_accuracy = accuracy_score(y_test, y_pred)
+print(f"\nFinal Test Accuracy (k=3, Euclidean): {test_accuracy:.4%}")
+
+# Use sklearn classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+#--------------------------------------------------------------------------------------------
 print("Model: Decision Tree Classifier")
 
 # Min sample split and max depth act as stopping conditions for the tree growth
@@ -63,12 +75,11 @@ best_tree = grid_search.best_estimator_
 # Evaluate the best model on the test set
 y_pred = best_tree.predict(X_test)
 print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity
+
 #--------------------------------------------------------------------------------------------
 # Random Forest Classifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
 
-print("Model: Random Forrest Classifier")
+print("Model: Random Forest Classifier")
 
 # Parameters for tuning
 param_grid = {
@@ -93,3 +104,49 @@ best_forest = grid_search.best_estimator_
 y_pred = best_forest.predict(X_test)
 print(classification_report(y_test, y_pred)) # This gives you Accuracy and Sensitivity
 #--------------------------------------------------------------------------------------------
+
+# Plot Confusion Matrix
+def plot_cm(y_true, y_pred, model_name):
+
+    # Calculate the accuracy
+    acc = accuracy_score(y_true, y_pred)
+
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+
+    plt.title(f'Confusion Matrix: {model_name}\nAccuracy: {acc:.2%}')
+    plt.ylabel('Actual Label')
+    plt.xlabel('Predicted Label')
+    plt.savefig(f'src/supervised learning/{model_name}.png')
+    plt.show()
+
+# kNN
+y_pred_knn = knn_model.predict(X_test) 
+plot_cm(y_test, y_pred_knn, "kNN")
+
+# Decision Tree
+y_pred_tree = best_tree.predict(X_test)
+plot_cm(y_test, y_pred_tree, "Decision Tree")
+
+# Random Forest
+y_pred_forest = best_forest.predict(X_test)
+plot_cm(y_test, y_pred_forest, "Random Forest")
+
+#--------------------------------------------------------------------------------------------
+# Identify the BEST classification model
+
+# Store accuracies for comparison
+results = {
+    "kNN": accuracy_score(y_test, y_pred_knn),
+    "Decision Tree": accuracy_score(y_test, y_pred_tree),
+    "Random Forest": accuracy_score(y_test, y_pred_forest)
+}
+
+# Present the best model
+best_model_name = max(results, key=results.get)
+print(f"\n--- Final Analysis ---")
+for model, acc in results.items():
+    print(f"{model} Accuracy: {acc:.4%}")
+
+print(f"\nThe best classifier is: {best_model_name}")
