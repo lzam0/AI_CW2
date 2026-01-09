@@ -32,6 +32,7 @@ for i in range(21):
     header.extend([f"x{i}", f"y{i}", f"z{i}"])
 
 header.append("label")
+header.append("handedness")
 
 # Ensure that the output CSV dir is valid
 os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
@@ -86,6 +87,7 @@ with open(OUTPUT_CSV, mode="w", newline="") as f:
                 row.extend([lm.x, lm.y, lm.z])
 
             row.append(label)
+            row.append(result.handedness[0][0].category_name)
             writer.writerow(row)
 
             instance_id += 1

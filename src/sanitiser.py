@@ -13,7 +13,7 @@ def centre_hand(flat):
 
 def normalise_scale(flat):
     lm = flat.reshape(21, 3)
-    scale = np.linalg.norm(lm[9])  # wrist → middle MCP
+    scale = np.linalg.norm(lm[9])  # Centre wrist
     if scale == 0:
         return None
     return (lm / scale).reshape(-1)
@@ -26,11 +26,15 @@ with INPUT.open(newline="") as f:
 
     for row in reader:
         # Skip malformed rows
-        if len(row) != 65:
+        if len(row) != 66:
             continue
 
-        label = row[-1]
-        data = np.asarray(row[1:-1], dtype=float)  # skip instance_id, keep 63 values
+        handedness = row[-1]
+        if handedness != "Right":
+            continue
+
+        label = row[-2]
+        data = np.asarray(row[1:-2], dtype=float)  # skip instance_id, keep 63 values
 
         if not np.isfinite(data).all():
             continue
@@ -40,7 +44,7 @@ with INPUT.open(newline="") as f:
         if data is None:
             continue
 
-        ## Drop Z (optional but recommended)
+        ## Drop Z
         # data = data.reshape(21, 3)[:, :2].reshape(-1)
 
         # Final sanity filter
