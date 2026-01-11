@@ -156,66 +156,98 @@ print(f"\nThe best classifier is: {best_model_name}")
 # Identify the BEST classification model based off 'accuracy'
 
 # Store accuracies for comparison
-results = {
-    "kNN": accuracy_score(y_test, y_pred_knn),
-    "Decision Tree": accuracy_score(y_test, y_pred_tree),
-    "Random Forest": accuracy_score(y_test, y_pred_forest)
-}
+# results = {
+#     "kNN": accuracy_score(y_test, y_pred_knn),
+#     "Decision Tree": accuracy_score(y_test, y_pred_tree),
+#     "Random Forest": accuracy_score(y_test, y_pred_forest)
+# }
 
-# Present the best model
-best_model_name = max(results, key=results.get)
-print(f"\n--- Final Analysis ---")
-for model, acc in results.items():
-    print(f"{model} Accuracy: {acc:.4%}")
+# # Present the best model
+# best_model_name = max(results, key=results.get)
+# print(f"\n--- Final Analysis ---")
+# for model, acc in results.items():
+#     print(f"{model} Accuracy: {acc:.4%}")
 
-print(f"\nThe best classifier is: {best_model_name}")
+# print(f"\nThe best classifier is: {best_model_name}")
 
 #--------------------------------------------------------------------------------------------
 # Final Analysis: Consistency Check (CV Score vs Test Score)
 
 # Note: For kNN, we don't have a GridSearchCV object, so we use the training accuracy 
 # as a proxy for comparison if cross-validation wasn't performed on it.
-knn_train_acc = accuracy_score(y_train, knn_model.predict(X_train))
+def find_best_model():
 
-# Store results in a dictionary for comparison
-comparison_data = {
-    "kNN": {
-        "cv_acc": knn_train_acc, # Proxy for consistency
-        "test_acc": accuracy_score(y_test, y_pred_knn)
-    },
-    "Decision Tree": {
-        "cv_acc": dt_grid.best_score_, # Mean accuracy from CV folds
-        "test_acc": accuracy_score(y_test, y_pred_tree)
-    },
-    "Random Forest": {
-        "cv_acc": rf_grid.best_score_, # Mean accuracy from CV folds
-        "test_acc": accuracy_score(y_test, y_pred_forest)
+    knn_train_acc = accuracy_score(y_train, knn_model.predict(X_train))
+
+    # Store results in a dictionary for comparison
+    comparison_data = {
+        "kNN": {
+            "cv_acc": knn_train_acc, # Proxy for consistency
+            "test_acc": accuracy_score(y_test, y_pred_knn)
+        },
+        "Decision Tree": {
+            "cv_acc": dt_grid.best_score_, # Mean accuracy from CV folds
+            "test_acc": accuracy_score(y_test, y_pred_tree)
+        },
+        "Random Forest": {
+            "cv_acc": rf_grid.best_score_, # Mean accuracy from CV folds
+            "test_acc": accuracy_score(y_test, y_pred_forest)
+        }
     }
-}
 
-print(f"\n--- Model Consistency Analysis ---")
-print(f"{'Model':<15} | {'CV Acc':<10} | {'Test Acc':<10} | {'Gap (Diff)':<10}")
-print("-" * 55)
+    print(f"\n--- Model Consistency Analysis ---")
+    print(f"{'Model':<15} | {'CV Acc':<10} | {'Test Acc':<10} | {'Gap (Diff)':<10}")
+    print("-" * 55)
 
-consistency_results = {}
+    consistency_results = {}
 
-for model, scores in comparison_data.items():
-    cv = scores['cv_acc']
-    test = scores['test_acc']
-    gap = abs(cv - test)
-    consistency_results[model] = gap
-    print(f"{model:<15} | {cv:>8.2%} | {test:>9.2%} | {gap:>9.2%}")
+    for model, scores in comparison_data.items():
+        cv = scores['cv_acc']
+        test = scores['test_acc']
+        gap = abs(cv - test)
+        consistency_results[model] = gap
+        print(f"{model:<15} | {cv:>8.2%} | {test:>9.2%} | {gap:>9.2%}")
 
-# The "Best" model based on consistency (smallest gap)
-most_consistent_model = min(consistency_results, key=consistency_results.get)
-# The "Best" model based on raw accuracy
-highest_accuracy_model = max(comparison_data, key=lambda x: comparison_data[x]['test_acc'])
+    # The "Best" model based on consistency (smallest gap)
+    most_consistent_model = min(consistency_results, key=consistency_results.get)
+    # The "Best" model based on raw accuracy
+    highest_accuracy_model = max(comparison_data, key=lambda x: comparison_data[x]['test_acc'])
 
-print(f"\nHighest Accuracy Model: {highest_accuracy_model}")
-print(f"Most Consistent Model: {most_consistent_model} (Difference of {consistency_results[most_consistent_model]:.2%})")
+    print(f"\nHighest Accuracy Model: {highest_accuracy_model}")
+    print(f"Most Consistent Model: {most_consistent_model} (Difference of {consistency_results[most_consistent_model]:.2%})")
 
-# Final recommendation logic
-if most_consistent_model == highest_accuracy_model:
-    print(f"Decision: {most_consistent_model} is the clear winner.")
-else:
-    print(f"Decision: Consider {most_consistent_model} for stability or {highest_accuracy_model} for raw performance.")
+    # Final recommendation logic
+    if most_consistent_model == highest_accuracy_model:
+        print(f"Decision: {most_consistent_model} is the clear winner.")
+    else:
+        print(f"Decision: Consider {most_consistent_model} for stability or {highest_accuracy_model} for raw performance.")
+
+
+from sklearn.metrics import precision_recall_fscore_support
+
+def get_full_metrics(model_name, y_true, y_pred):
+    # Extract macro average metrics (fair for multi-class)
+    precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='macro')
+    acc = accuracy_score(y_true, y_pred)
+    
+    return {
+        "Model": model_name,
+        "Accuracy": f"{acc:.2%}",
+        "Precision": f"{precision:.3f}",
+        "Recall": f"{recall:.3f}",
+        "F1-Score": f"{f1:.3f}"
+    }
+
+# Collect data for all 3 models
+table_data = [
+    get_full_metrics("kNN (Scratch)", y_test, y_pred_knn),
+    get_full_metrics("Decision Tree", y_test, y_pred_tree),
+    get_full_metrics("Random Forest", y_test, y_pred_forest)
+]
+
+# Create and display DataFrame
+results_df = pd.DataFrame(table_data)
+print("\n--- Poster Comparison Table ---")
+print(results_df.to_string(index=False))
+
+results_df.to_csv("supervised_results_table.csv", index=False)

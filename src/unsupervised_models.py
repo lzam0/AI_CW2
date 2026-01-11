@@ -40,7 +40,7 @@ def labels_to_codes(labels: pd.Series) -> np.ndarray:
 
 def main():
     ROOT = Path(__file__).resolve().parents[1]
-    CSV_PATH = ROOT / "data" / "cleaned_features" / "hand_landmarks_cleaned.csv"
+    CSV_PATH = ROOT / "data" / "extracted_features" / "hand_landmarks_sanitised.csv"
     OUT_DIR = ROOT / "outputs"
     ensure_dir(OUT_DIR)
 
@@ -98,7 +98,8 @@ def main():
         metrics["hierarchical"]["NMI"] = None
 
     # Save metrics JSON
-    (OUT_DIR / "unsupervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    # (OUT_DIR / "unsupervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    (OUT_DIR / "supervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
 
     # Save cluster assignments
     out_df = pd.DataFrame()
@@ -153,8 +154,8 @@ def main():
     if y_true is not None:
         plot_2d(X_tsne_2d, labels_to_codes(y_true), f"True Labels (t-SNE, perplexity={perplexity})", OUT_DIR / "true_tsne2d.png")
 
-    print(" Part 2d done.")
-    print(f"- Metrics: {OUT_DIR / 'unsupervised_metrics.json'}")
+    print(" Unsupervised Learning Completed")
+    print(f"- Metrics: {OUT_DIR / 'supervised_metrics.json'}")
     print(f"- Assignments: {OUT_DIR / 'cluster_assignments.csv'}")
     print(f"- Plots: {OUT_DIR}/*.png")
 

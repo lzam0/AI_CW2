@@ -1,0 +1,4 @@
+Model,Accuracy,Precision,Recall,F1-Score
+kNN (Scratch),96.21%,0.963,0.963,0.963
+Decision Tree,94.53%,0.945,0.947,0.946
+Random Forest,96.35%,0.965,0.964,0.964
