@@ -10,7 +10,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 
 # Load the extracted features dataset
-data = pd.read_csv('data/extracted_features/hand_landmarks.csv') # Replace with actual path to your CSV file
+data = pd.read_csv('data/extracted_features/hand_landmarks_sanitised.csv')
 
 # Separate features and labels
 X = data.drop(columns=['instance_id', 'label']).values
@@ -39,13 +39,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report, confusion_matrix
 
-print("Model: Decision Tree Classifier")
+print("Model: Random Forest Classifier")
 
 # Parameters for tuning
 param_grid = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [None, 10, 20],
-    'min_samples_split': [2, 5, 10]
+    'n_estimators': [50, 75, 100, 200],
+    'max_depth': [None, 10, 15, 20]
 }
 
 # Initialize Random Forest Classifier (random state = 2 for reproducibility)
