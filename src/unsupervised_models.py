@@ -40,7 +40,7 @@ def labels_to_codes(labels: pd.Series) -> np.ndarray:
 
 def main():
     ROOT = Path(__file__).resolve().parents[1]
-    CSV_PATH = ROOT / "data" / "extracted_features" / "hand_landmarks_sanitised.csv"
+    CSV_PATH = ROOT / "data" / "cleaned_features" / "hand_landmarks_cleaned.csv"
     OUT_DIR = ROOT / "outputs"
     ensure_dir(OUT_DIR)
 
@@ -63,15 +63,13 @@ def main():
     # Choose k
     k = int(y_true.nunique()) if y_true is not None else 10
 
-    # ---------------------------
-    # 1) Clustering (full 63D)
-    # ---------------------------
+    
+    # Clustering (full 63D)
+    
     kmeans_labels = KMeans(n_clusters=k, random_state=42, n_init="auto").fit_predict(X_scaled)
     hier_labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(X_scaled)
 
-    # ---------------------------
-    # 2) Metrics
-    # ---------------------------
+    # Metrics
     metrics = {
         "dataset": str(CSV_PATH),
         "n_samples": int(X.shape[0]),
@@ -97,9 +95,7 @@ def main():
         metrics["hierarchical"]["ARI"] = None
         metrics["hierarchical"]["NMI"] = None
 
-    # Save metrics JSON
-    # (OUT_DIR / "unsupervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    (OUT_DIR / "supervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    (OUT_DIR / "unsupervised_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
 
     # Save cluster assignments
     out_df = pd.DataFrame()
@@ -128,15 +124,11 @@ def main():
     plot_2d(X_pca_2d, kmeans_labels, "K-Means Clusters (PCA 2D)", OUT_DIR / "kmeans_pca2d.png")
     plot_2d(X_pca_2d, hier_labels, "Hierarchical Clusters (PCA 2D)", OUT_DIR / "hier_pca2d.png")
 
-    # Plot PCA coloured by true labels (if available)
+    # Plot PCA coloured by true labels
     if y_true is not None:
         plot_2d(X_pca_2d, labels_to_codes(y_true), "True Labels (PCA 2D)", OUT_DIR / "true_pca2d.png")
 
-    # ---------------------------
-    # 4) t-SNE 2D (OPTIONAL / NON-LINEAR VIS)
-    # ---------------------------
-    # t-SNE is expensive. Using init="pca" improves stability.
-    # Perplexity must be < n_samples; we adapt automatically.
+    # 4) t-SNE 2D
     n = X_scaled.shape[0]
     perplexity = min(30, max(5, (n - 1) // 3))  # safe-ish default
 
@@ -155,7 +147,7 @@ def main():
         plot_2d(X_tsne_2d, labels_to_codes(y_true), f"True Labels (t-SNE, perplexity={perplexity})", OUT_DIR / "true_tsne2d.png")
 
     print(" Unsupervised Learning Completed")
-    print(f"- Metrics: {OUT_DIR / 'supervised_metrics.json'}")
+    print(f"- Metrics: {OUT_DIR / 'unsupervised_metrics.json'}")
     print(f"- Assignments: {OUT_DIR / 'cluster_assignments.csv'}")
     print(f"- Plots: {OUT_DIR}/*.png")
 
